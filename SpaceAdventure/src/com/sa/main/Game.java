@@ -1,12 +1,39 @@
 package com.sa.main;
 
-public class Game implements Runnable {
+import java.awt.Canvas;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+
+import javax.swing.JFrame;
+
+import com.sa.statemachine.GameFSM;
+
+public class Game extends Canvas implements Runnable {
 
 	private Thread thread;
 	private boolean running;
-
+	private GameFSM fsm = null;
+	public static final int SCALE = 2;
+	public static final int WIDTH = 500;
+	public static final int HEIGHT = WIDTH * 9 / 12; // aspect ratio 12 : 9
+	private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+	
 	public static void main(String[] args) {
 		Game game = new Game();
+		game.setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
+		game.setMaximumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
+		game.setMinimumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
+
+		JFrame initialFrame = new JFrame("Space Adventure");
+		initialFrame.setSize(new Dimension(WIDTH, HEIGHT));
+		initialFrame.add(game);
+		initialFrame.pack();
+		initialFrame.setResizable(false);
+		initialFrame.setLocationRelativeTo(null);
+		initialFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		initialFrame.setVisible(true);
 		game.start();
 	}
 
@@ -21,6 +48,7 @@ public class Game implements Runnable {
 
 	@Override
 	public void run() {
+		init();
 		int tick = 0, requiredFramesPerSecond = 60;
 		long frames = 0, currentTime = 0, lastTime = System.nanoTime(), timer = System.currentTimeMillis();
 		double delta = 0, ns = 1e9 / requiredFramesPerSecond;
@@ -62,12 +90,28 @@ public class Game implements Runnable {
 		}
 		System.exit(1);
 	}
+	
+	public void init() {
+		fsm = new GameFSM();
+		fsm.initialize();
+
+		requestFocusInWindow();
+	}
 
 	private void tick() {
-		// System.out.println("Updating System State");
+		fsm.tick();
 	}
 
 	private void render() {
-		// System.out.println("Rendering Objects");
+		BufferStrategy bs = this.getBufferStrategy();
+		if (bs == null) {
+			createBufferStrategy(3);
+			return;
+		}
+		Graphics g = bs.getDrawGraphics();
+		g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+		fsm.render(g);
+		g.dispose();
+		bs.show();
 	}
 }
