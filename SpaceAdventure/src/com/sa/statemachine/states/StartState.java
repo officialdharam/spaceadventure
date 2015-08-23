@@ -2,11 +2,22 @@ package com.sa.statemachine.states;
 
 import java.awt.Graphics;
 
+import com.sa.screens.FlashScreen;
+import com.sa.statemachine.StateName;
+import com.sa.textures.Texture;
+
 public class StartState extends BaseState {
+	
+	FlashScreen flash;
+	
+	public StartState(Texture tx) {
+		super(StateName.START, tx);
+		this.texture = tx;
+	}
 
 	@Override
 	public void on() {
-		System.out.println("Start State is on");
+		flash = new FlashScreen(this.texture);
 	}
 
 	@Override
@@ -21,7 +32,7 @@ public class StartState extends BaseState {
 
 	@Override
 	public void render(Graphics g) {
-		System.out.println("Start State is rendering");
+		flash.render(g);
 	}
 
 }
